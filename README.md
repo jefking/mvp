@@ -1,6 +1,5 @@
-# mvp
+# mvp: Non-leaky abstraction
 [![License](http://img.shields.io/:license-mit-blue.svg)](http://anttiviljami.mit-license.org)
-Non-leaky abstraction
 
 ## Dapr
 https://github.com/dapr/quickstarts
