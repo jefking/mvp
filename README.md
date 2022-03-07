@@ -1,4 +1,5 @@
 # mvp
+Non-leaky abstraction
 
 ## Dapr
 https://github.com/dapr/quickstarts
