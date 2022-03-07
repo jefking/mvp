@@ -6,11 +6,6 @@ Example project using [openapi-backend](https://github.com/anttiviljami/openapi-
 ## QuickStart
 
 ```
-npm install
-npm start # API running at http://localhost:9000
-```
-
-```
 docker build .
 docker run -t -p 8080:9000
 ```
