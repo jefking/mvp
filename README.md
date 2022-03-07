@@ -1,4 +1,5 @@
 # mvp
+[![License](http://img.shields.io/:license-mit-blue.svg)](http://anttiviljami.mit-license.org)
 Non-leaky abstraction
 
 ## Dapr
