@@ -24,6 +24,9 @@ Building blocks for no-code platform.
 5. Logging (Dapr)
 6. Canary/Blue-Green deployments
 
+#### Infrastructure
+- K8s
+
 ## Research
 ### Dapr
 https://github.com/dapr/quickstarts
