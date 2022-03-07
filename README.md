@@ -1,6 +1,8 @@
 # mvp: Non-leaky abstraction
 [![License](http://img.shields.io/:license-mit-blue.svg)](http://anttiviljami.mit-license.org)
 
+Building blocks for no-code platform.
+
 ## Comments
 ### OpenAPI
 - Example app built
