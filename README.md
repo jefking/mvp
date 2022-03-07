@@ -13,3 +13,25 @@ https://openapi.tools/
 
 ### Mock
 https://www.npmjs.com/package/openapi-mock-generator
+
+
+# Comments
+## OpenAPI
+- Example app built
+- Mocks; possible
+- Data Generation; possible
+
+## Dapr
+- side car for 'serverless' routing, calls based on HTTP request/response
+- state machines
+
+## Ngnix
+- [Ngnix multi-cast](https://github.com/jefking/Multiplexor)
+
+## Needed
+1. Example of working solution; API -> Storage
+2. Language to describe wiring (yml)
+3. UI for wiring
+4. K8s for runtime
+5. Logging (Dapr)
+6. Canary/Blue-Green deployments
