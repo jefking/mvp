@@ -10,6 +10,11 @@ npm install
 npm start # API running at http://localhost:9000
 ```
 
+```
+docker build .
+docker run -t -p 8080:9000
+```
+
 Try the endpoints:
 
 ```bash
