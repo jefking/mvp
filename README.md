@@ -3,6 +3,22 @@
 
 Building blocks for no-code platform.
 
+## App
+```
+dapr invoke --app-id mvpval --method newthing --data-file sample.json
+```
+
+### API: Validation
+```
+dapr run --app-id mvpval --app-port 3000 --dapr-http-port 3500 node app.js
+```
+
+### Persistence
+
+```
+dapr run --app-id mvpstate --app-port 3001 --dapr-http-port 3501 node app.js
+```
+
 ## Comments
 ### OpenAPI
 - Example app built
