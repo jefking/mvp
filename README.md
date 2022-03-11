@@ -3,22 +3,6 @@
 
 Building blocks for no-code platform.
 
-## App
-```
-dapr invoke --app-id mvpval --method newthing --data-file sample.json
-```
-
-### API: Validation
-```
-dapr run --app-id mvpval --app-port 3000 node app.js
-```
-
-### Persistence
-
-```
-dapr run --app-id mvpstate --app-port 3001 node app.js
-```
-
 ## Comments
 ### OpenAPI
 - Example app built
@@ -31,14 +15,6 @@ dapr run --app-id mvpstate --app-port 3001 node app.js
 
 ### Ngnix
 - [Ngnix multi-cast](https://github.com/jefking/Multiplexor)
-
-### Needed
-1. Example of working solution; API -> Storage
-2. Language to describe wiring (yml)
-3. UI for wiring
-4. K8s for runtime
-5. Logging (Dapr)
-6. Canary/Blue-Green deployments
 
 #### Infrastructure
 - K8s
