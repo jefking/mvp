@@ -1,4 +1,5 @@
 {
-    "id": 44,
-    "description": "i am a thing."
+    "id": 42,
+    "description": "i am a thing.",
+    "unique": false
 }

@@ -8,9 +8,15 @@
 - [ ] Logging (Dapr)
 - [ ] Canary/Blue-Green deployments
 
+## Basic
+```
+minikube start
+minikube dashboard
+```
+
 ## Test with Data
 ```
-dapr invoke --app-id mvpval --method newthing --data-file sample.json
+dapr invoke --app-id mvpval --method thing --data-file sample.json
 ```
 
 ## API: Validation
