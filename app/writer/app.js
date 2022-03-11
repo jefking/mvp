@@ -4,35 +4,32 @@
 // ------------------------------------------------------------
 
 const express = require('express');
+const bodyParser = require('body-parser');
 require('isomorphic-fetch');
 
 const app = express();
-app.use(express.json());
+// Dapr publishes messages with the application/cloudevents+json content-type
+app.use(bodyParser.json({ type: 'application/*+json' }));
 
 const daprPort = process.env.DAPR_HTTP_PORT || 3500;
+const queueName = `pubsub`;
 const stateStoreName = `statestore`;
 const stateUrl = `http://localhost:${daprPort}/v1.0/state/${stateStoreName}`;
 const port = 3001;
 
-app.get('/', (_req, res) => {
-    fetch(`${stateUrl}/order`)
-        .then((response) => {
-            if (!response.ok) {
-                throw "Could not get state.";
-            }
-
-            return response.text();
-        }).then((orders) => {
-            res.send(orders);
-        }).catch((error) => {
-            console.log(error);
-            res.status(500).send({ message: error });
-        });
+app.get('/dapr/subscribe', (_req, res) => {
+    res.json([
+        {
+            pubsubname: queueName,
+            topic: "thing",
+            route: "thing"
+        }
+    ]);
 });
 
-app.post('/', (req, res) => {
+app.post('/thing', (req, res) => {
     const data = req.body.data;
-    console.log("Got a thing!");
+    console.log(`Got a thing! ${JSON.stringify(data)}`);
 
     const state = [{
         key: "thing",
