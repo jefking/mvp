@@ -51,7 +51,7 @@ https://github.com/dapr/quickstarts
 * [OpenAPI](https://github.com/OAI/OpenAPI-Specification)
 * [Pet Store example](https://github.com/OAI/OpenAPI-Specification/blob/main/examples/v3.0/petstore.yaml)
 
-* [Mizu](https://getmizu.io/)
+* [Mizu: Traffic Viewer, builds OpenAPI spec off of live](https://getmizu.io/)
 
 #### Tools
 https://openapi.tools/
