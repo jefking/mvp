@@ -16,4 +16,3 @@ Try the endpoints:
 curl -i http://localhost:8080/pets
 curl -i http://localhost:8080/pets/1
 ```
-
