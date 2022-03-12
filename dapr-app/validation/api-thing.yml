@@ -1,0 +1,53 @@
+openapi: '3.0.1'
+info: 
+  title: 'thing'
+  version: '1.0.0'
+  license:
+    name: MIT
+paths: 
+  /thing:
+    post:
+      summary: create a thing
+      operationId: postThing
+      requestBody:
+          description: thing that needs to be stored
+          required: true
+          schema:
+            $ref: "#/components/schemas/Thing" 
+      responses:
+        200:
+          description: ok
+        201:
+          description: Null response
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Thing:
+      required:
+        - id
+        - unique
+      properties:
+        id:
+          type: integer
+          format: int64
+        description:
+          type: string
+          example: information about the thing
+        unique:
+          type: boolean
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string

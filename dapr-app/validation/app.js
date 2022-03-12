@@ -18,41 +18,22 @@ const port = 3000;
 
 // define api
 const api = new OpenAPIBackend({
-    definition: {
-        openapi: '3.0.1',
-        info: {
-            title: 'My API',
-            version: '1.0.0',
-        },
-        paths: {
-            '/thing': {
-                post: {
-                    operationId: 'postThing',
-                    responses: {
-                        200: { description: 'ok' },
-                    },
-                },
-            }
-        },
-    },
+    definition: './api-thing.yml',
+    strict: true,
+    quick: false,
+    validate: true,
+    ignoreTrailingSlashes: true,
     handlers: {
         postThing: async (c, req, res) => {
             const data = req.body;
 
-            if (undefined === data.id || 0 == data.id) {
-                console.logError("no id!"); //fake validation.
+            data.inflated = true;
+            console.log("Publishing: ", data);
 
-                res.sendStatus(500);
-            }
-            else {
-                data.inflated = true;
-                console.log("Publishing: ", data);
-
-                await axios.post(`${daprUrl}/publish/${queueName}/${messageType}`, data).catch(err => console.log(err));
-                res.status(200).json({ operationId: c.operation.operationId });
-            }
+            await axios.post(`${daprUrl}/publish/${queueName}/${messageType}`, data).catch(err => console.log(err));
+            res.status(200).json({ operationId: c.operation.operationId });
         },
-        validationFail: async (c, req, res) => res.status(400).json({ err: c.validation.errors }),
+        validationFail: async (c, req, res) => res.status(405).json({ err: c.validation.errors }),
         notFound: async (c, req, res) => res.status(404).json({ err: 'not found' }),
     },
 });
