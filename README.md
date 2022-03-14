@@ -20,6 +20,8 @@ Building blocks for no-code platform.
 - K8s
 
 ## Research
+[Open Application Model](https://github.com/oam-dev/spec)
+
 ### Dapr
 https://github.com/dapr/quickstarts
 

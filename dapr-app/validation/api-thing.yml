@@ -10,21 +10,16 @@ paths:
       summary: create a thing
       operationId: postThing
       requestBody:
-          description: thing that needs to be stored
-          required: true
-          schema:
-            $ref: "#/components/schemas/Thing" 
+        description: thing that needs to be stored
+        content: 
+        required: true
       responses:
         200:
           description: ok
-        201:
-          description: Null response
-        default:
-          description: unexpected error
           content:
-            application/json:
+            application/json:    
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: "#/components/schemas/Pets"
 components:
   schemas:
     Thing:
@@ -40,14 +35,3 @@ components:
           example: information about the thing
         unique:
           type: boolean
-    Error:
-      type: object
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: integer
-          format: int32
-        message:
-          type: string
