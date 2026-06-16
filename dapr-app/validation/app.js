@@ -5,42 +5,66 @@
 const OpenAPIBackend = require('openapi-backend').default;
 const express = require('express');
 const axios = require('axios');
+const path = require('path');
 require('isomorphic-fetch');
-
-const app = express();
-app.use(express.json());
 
 const daprPort = process.env.DAPR_HTTP_PORT || 3500;
 const queueName = `pubsub`;
 const messageType = `thing`;
-const daprUrl = `http://localhost:${daprPort}/v1.0`;
 const port = 3000;
 
-// define api
-const api = new OpenAPIBackend({
-    definition: './api-thing.yml',
-    strict: true,
-    quick: false,
-    validate: true,
-    ignoreTrailingSlashes: true,
-    handlers: {
-        postThing: async (c, req, res) => {
-            const data = req.body;
+function createApp({ publisher = axios, daprHttpPort = daprPort, definition = path.join(__dirname, 'api-thing.yml') } = {}) {
+    const app = express();
+    app.use(express.json());
 
-            data.inflated = true;
-            console.log("Publishing: ", data);
+    const daprUrl = `http://localhost:${daprHttpPort}/v1.0`;
 
-            await axios.post(`${daprUrl}/publish/${queueName}/${messageType}`, data).catch(err => console.log(err));
-            res.status(200).json({ operationId: c.operation.operationId });
+    // define api
+    const api = new OpenAPIBackend({
+        definition,
+        strict: true,
+        quick: false,
+        validate: true,
+        ignoreTrailingSlashes: true,
+        handlers: {
+            postThing: async (c, req, res) => {
+                const data = req.body;
+
+                data.inflated = true;
+                console.log("Publishing: ", data);
+
+                await publisher.post(`${daprUrl}/publish/${queueName}/${messageType}`, data).catch(err => console.log(err));
+                res.status(200).json({ operationId: c.operation.operationId });
+            },
+            validationFail: async (c, req, res) => res.status(405).json({ err: c.validation.errors }),
+            notFound: async (c, req, res) => res.status(404).json({ err: 'not found' }),
         },
-        validationFail: async (c, req, res) => res.status(405).json({ err: c.validation.errors }),
-        notFound: async (c, req, res) => res.status(404).json({ err: 'not found' }),
-    },
-});
+    });
 
-api.init();
+    const apiReady = api.init();
 
-// use as express middleware
-app.use((req, res) => api.handleRequest(req, req, res));
+    // use as express middleware
+    app.use(async (req, res, next) => {
+        try {
+            await apiReady;
+            await api.handleRequest(req, req, res);
+        } catch (err) {
+            next(err);
+        }
+    });
 
-app.listen(port, () => console.log(`Node App listening on port ${port}!`));
+    return app;
+}
+
+function start({ listenPort = port } = {}) {
+    return createApp().listen(listenPort, () => console.log(`Node App listening on port ${listenPort}!`));
+}
+
+if (require.main === module) {
+    start();
+}
+
+module.exports = {
+    createApp,
+    start,
+};
