@@ -11,15 +11,23 @@ paths:
       operationId: postThing
       requestBody:
         description: thing that needs to be stored
-        content: 
         required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Thing"
       responses:
         200:
           description: ok
           content:
             application/json:    
               schema:
-                $ref: "#/components/schemas/Pets"
+                type: object
+                required:
+                  - operationId
+                properties:
+                  operationId:
+                    type: string
 components:
   schemas:
     Thing:
