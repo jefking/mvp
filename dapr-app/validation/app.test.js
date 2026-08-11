@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const { createApp } = require('./app');
+const sample = require('../sample.json');
 
 function listen(app) {
     return new Promise((resolve) => {
@@ -19,7 +20,7 @@ function url(server, path) {
     return `http://127.0.0.1:${port}${path}`;
 }
 
-test('POST /thing validates and publishes inflated things', async () => {
+test('POST /thing validates and publishes the canonical thing unchanged', async () => {
     const published = [];
     const app = createApp({
         daprHttpPort: 9999,
@@ -33,11 +34,7 @@ test('POST /thing validates and publishes inflated things', async () => {
     const server = await listen(app);
 
     try {
-        const thing = {
-            id: 42,
-            description: 'i am a thing.',
-            unique: false,
-        };
+        const thing = structuredClone(sample);
 
         const response = await fetch(url(server, '/thing'), {
             method: 'POST',
@@ -50,12 +47,35 @@ test('POST /thing validates and publishes inflated things', async () => {
         assert.deepEqual(published, [
             {
                 publishUrl: 'http://localhost:9999/v1.0/publish/pubsub/thing',
-                body: {
-                    ...thing,
-                    inflated: true,
-                },
+                body: thing,
             },
         ]);
+    } finally {
+        await close(server);
+    }
+});
+
+test('POST /thing uses sample.json as the complete payload definition', async () => {
+    const app = createApp({
+        publisher: {
+            post: async () => {
+                throw new Error('invalid requests should not be published');
+            },
+        },
+    });
+    const server = await listen(app);
+
+    try {
+        const response = await fetch(url(server, '/thing'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: sample.id, unique: sample.unique }),
+        });
+        const body = await response.json();
+
+        assert.equal(response.status, 400);
+        assert.equal(body.error, 'INVALID_PAYLOAD');
+        assert.equal(body.issues[0].message, "must have required property 'description'");
     } finally {
         await close(server);
     }
@@ -75,13 +95,14 @@ test('POST /thing rejects invalid request bodies', async () => {
         const response = await fetch(url(server, '/thing'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: 42 }),
+            body: JSON.stringify({ id: 42, description: sample.description }),
         });
         const body = await response.json();
 
-        assert.equal(response.status, 405);
-        assert.ok(Array.isArray(body.err));
-        assert.equal(body.err[0].message, "must have required property 'unique'");
+        assert.equal(response.status, 400);
+        assert.equal(body.error, 'INVALID_PAYLOAD');
+        assert.ok(Array.isArray(body.issues));
+        assert.ok(body.issues.some(({ message }) => message === "must have required property 'unique'"));
     } finally {
         await close(server);
     }

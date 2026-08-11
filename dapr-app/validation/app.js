@@ -6,14 +6,23 @@ const OpenAPIBackend = require('openapi-backend').default;
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
-require('isomorphic-fetch');
+const {
+    PayloadValidationError,
+    assertMatchesDefinition,
+    thingDefinition,
+} = require('../..');
 
 const daprPort = process.env.DAPR_HTTP_PORT || 3500;
 const queueName = `pubsub`;
 const messageType = `thing`;
 const port = 3000;
 
-function createApp({ publisher = axios, daprHttpPort = daprPort, definition = path.join(__dirname, 'api-thing.yml') } = {}) {
+function createApp({
+    publisher = axios,
+    daprHttpPort = daprPort,
+    definition = path.join(__dirname, 'api-thing.yml'),
+    dataDefinition = thingDefinition,
+} = {}) {
     const app = express();
     app.use(express.json());
 
@@ -30,13 +39,25 @@ function createApp({ publisher = axios, daprHttpPort = daprPort, definition = pa
             postThing: async (c, req, res) => {
                 const data = req.body;
 
-                data.inflated = true;
-                console.log("Publishing: ", data);
+                try {
+                    assertMatchesDefinition(data, dataDefinition);
+                } catch (error) {
+                    if (error instanceof PayloadValidationError) {
+                        return res.status(400).json({
+                            error: error.code,
+                            issues: error.issues,
+                        });
+                    }
+                    throw error;
+                }
 
-                await publisher.post(`${daprUrl}/publish/${queueName}/${messageType}`, data).catch(err => console.log(err));
+                await publisher.post(`${daprUrl}/publish/${queueName}/${messageType}`, data);
                 res.status(200).json({ operationId: c.operation.operationId });
             },
-            validationFail: async (c, req, res) => res.status(405).json({ err: c.validation.errors }),
+            validationFail: async (c, req, res) => res.status(400).json({
+                error: 'INVALID_PAYLOAD',
+                issues: c.validation.errors,
+            }),
             notFound: async (c, req, res) => res.status(404).json({ err: 'not found' }),
         },
     });

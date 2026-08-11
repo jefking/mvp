@@ -4,20 +4,25 @@
 // ------------------------------------------------------------
 
 const express = require('express');
-const bodyParser = require('body-parser');
-require('isomorphic-fetch');
+const {
+    createJsonResource,
+    createS3StorageFromEnv,
+    thingDefinition,
+} = require('../..');
 
-const daprPort = process.env.DAPR_HTTP_PORT || 3500;
 const queueName = `pubsub`;
-const stateStoreName = `statestore`;
 const port = 3001;
 
-function createApp({ fetchImpl = globalThis.fetch, daprHttpPort = daprPort } = {}) {
+function createApp({ storage, env = process.env } = {}) {
     const app = express();
-    const stateUrl = `http://localhost:${daprHttpPort}/v1.0/state/${stateStoreName}`;
+    const objectStorage = storage || createS3StorageFromEnv({ env });
+    const thing = createJsonResource({
+        storage: objectStorage,
+        definition: thingDefinition,
+    });
 
-    // Dapr publishes messages with the application/cloudevents+json content-type
-    app.use(bodyParser.json({ type: 'application/*+json' }));
+    // Accept both direct API requests and structured CloudEvents from Dapr.
+    app.use(express.json({ type: ['application/json', 'application/*+json'] }));
 
     app.get('/dapr/subscribe', (_req, res) => {
         res.json([
@@ -29,31 +34,13 @@ function createApp({ fetchImpl = globalThis.fetch, daprHttpPort = daprPort } = {
         ]);
     });
 
-    app.post('/thing', (req, res) => {
-        const data = req.body.data;
-        console.log(`Got a thing! ${JSON.stringify(data)}`);
+    app.post('/thing', thing.write);
+    app.get('/thing/:id', thing.read);
 
-        const state = [{
-            key: "thing",
-            value: data
-        }];
-
-        fetchImpl(stateUrl, {
-            method: "POST",
-            body: JSON.stringify(state),
-            headers: {
-                "Content-Type": "application/json"
-            }
-        }).then((response) => {
-            if (!response.ok) {
-                throw "Failed to persist state.";
-            }
-
-            console.log("Successfully persisted state.");
-            res.status(200).send();
-        }).catch((error) => {
-            console.log(error);
-            res.status(500).send({ message: error });
+    app.use((error, _req, res, _next) => {
+        res.status(error.statusCode || 500).json({
+            error: error.code || 'STORAGE_ERROR',
+            message: error.message,
         });
     });
 

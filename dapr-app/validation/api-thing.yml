@@ -31,8 +31,11 @@ paths:
 components:
   schemas:
     Thing:
+      type: object
+      additionalProperties: false
       required:
         - id
+        - description
         - unique
       properties:
         id:
