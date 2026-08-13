@@ -3,7 +3,6 @@
 const {
     assertMatchesDefinition,
     cloneJson,
-    thingDefinition,
 } = require('./definition');
 const {
     PayloadValidationError,
@@ -69,7 +68,7 @@ function sendValidationError(res, error) {
 
 function createJsonResource({
     storage,
-    definition = thingDefinition,
+    definition,
     keyOf = defaultKeyOf,
     allowAdditionalProperties = false,
 } = {}) {

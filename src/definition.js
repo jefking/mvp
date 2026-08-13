@@ -17,8 +17,6 @@ function deepFreeze(value) {
     return value;
 }
 
-const thingDefinition = deepFreeze(cloneJson(sample));
-
 function actualType(value) {
     if (value === null) return 'null';
     if (Array.isArray(value)) return 'array';
@@ -93,7 +91,7 @@ function validateNode(value, example, path, issues, allowAdditionalProperties) {
     }
 }
 
-function validateAgainstDefinition(value, definition = thingDefinition, { allowAdditionalProperties = false } = {}) {
+function validateAgainstDefinition(value, definition, { allowAdditionalProperties = false } = {}) {
     const issues = [];
     validateNode(value, definition, '$', issues, allowAdditionalProperties);
     return {
@@ -102,7 +100,7 @@ function validateAgainstDefinition(value, definition = thingDefinition, { allowA
     };
 }
 
-function assertMatchesDefinition(value, definition = thingDefinition, options) {
+function assertMatchesDefinition(value, definition, options) {
     const result = validateAgainstDefinition(value, definition, options);
     if (!result.valid) {
         throw new PayloadValidationError(result.issues);
@@ -113,6 +111,5 @@ function assertMatchesDefinition(value, definition = thingDefinition, options) {
 module.exports = {
     assertMatchesDefinition,
     cloneJson,
-    thingDefinition,
     validateAgainstDefinition,
 };

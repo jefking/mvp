@@ -5,16 +5,9 @@ const test = require('node:test');
 const {
     PayloadValidationError,
     assertMatchesDefinition,
-    thingDefinition,
     validateAgainstDefinition,
 } = require('../..');
 const sample = require('../../dapr-app/sample.json');
-
-test('sample.json is the exported, immutable data definition', () => {
-    assert.deepEqual(thingDefinition, sample);
-    assert.equal(Object.isFrozen(thingDefinition), true);
-    assert.doesNotThrow(() => assertMatchesDefinition(structuredClone(sample)));
-});
 
 test('the definition requires every sample field and preserves false values', () => {
     const valid = validateAgainstDefinition({

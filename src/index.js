@@ -2,7 +2,6 @@
 
 const {
     assertMatchesDefinition,
-    thingDefinition,
     validateAgainstDefinition,
 } = require('./definition');
 const {
@@ -33,6 +32,5 @@ module.exports = {
     extractRequestPayload,
     isStructuredCloudEventRequest,
     keyFromId,
-    thingDefinition,
     validateAgainstDefinition,
 };
