@@ -134,6 +134,36 @@ The test image is pinned because MinIO's community repository was archived in
 an isolated compatibility fixture; production deployments should choose and
 maintain their object-storage implementation independently.
 
+## Local MinIO load test
+
+Open this repository in its dev container, then run:
+
+```sh
+npm run load:minio
+```
+
+The dev container starts a local MinIO API at `http://minio:9000` (published on
+the host as `http://localhost:9000`) and its console at
+`http://localhost:9001`. The intentionally hard-coded local credentials are
+`minio-load-test` / `minio-load-test-secret`, and the benchmark creates the
+hard-coded `api-blob-load-test` bucket when needed.
+
+MinIO's `/data` directory is a 1 GiB Linux `tmpfs`, so benchmark data stays in
+RAM and disappears when the Compose environment stops. The benchmark first
+measures direct AWS SDK `PUT` and `GET` operations as a MinIO baseline, then
+runs the equivalent data through this package's S3 storage adapter. Reads in
+both paths consume the complete response body.
+
+The default workload runs two rounds of 1,000 operations per scenario at
+concurrency 16 with 1 KiB payloads. The second round reverses direct/package
+order to reduce warm-up bias, and the reported values aggregate both rounds.
+Workload settings (but not MinIO configuration) can be changed from the command
+line:
+
+```sh
+npm run load:minio -- --rounds 4 --operations 5000 --concurrency 32 --payload-bytes 4096
+```
+
 ## Existing Dapr example
 
 The original two-stage example remains under [`dapr-app`](dapr-app/README.md):

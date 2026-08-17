@@ -1,0 +1,12 @@
+{
+    "name": "API blob storage - MinIO load test",
+    "dockerComposeFile": "compose.yaml",
+    "service": "loadtest",
+    "runServices": [
+        "minio"
+    ],
+    "workspaceFolder": "/workspaces/api-blob-storage",
+    "shutdownAction": "stopCompose",
+    "postCreateCommand": "npm ci",
+    "remoteUser": "node"
+}

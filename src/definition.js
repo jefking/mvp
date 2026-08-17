@@ -1,20 +1,9 @@
 'use strict';
 
 const { PayloadValidationError } = require('./errors');
-const sample = require('../dapr-app/sample.json');
 
 function cloneJson(value) {
     return JSON.parse(JSON.stringify(value));
-}
-
-function deepFreeze(value) {
-    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
-        Object.freeze(value);
-        for (const child of Object.values(value)) {
-            deepFreeze(child);
-        }
-    }
-    return value;
 }
 
 function actualType(value) {
