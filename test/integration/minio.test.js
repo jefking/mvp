@@ -18,7 +18,7 @@ const {
     createJsonResource,
     createS3Storage,
 } = require('../..');
-const sample = require('../../dapr-app/sample.json');
+const sample = require('../fixtures/thing.json');
 
 const MINIO_IMAGE = 'quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e';
 const username = 'integration-user';
@@ -63,7 +63,7 @@ before(async () => {
     await s3.send(new CreateBucketCommand({ Bucket: bucket }));
     storage = createS3Storage({ client: s3, bucket, prefix: 'things' });
 
-    const resource = createJsonResource({ storage });
+    const resource = createJsonResource({ storage, definition: sample });
     const app = express();
     app.use(express.json({ type: ['application/json', 'application/*+json'] }));
     app.post('/thing', resource.write);

@@ -26,38 +26,6 @@ function keyFromId(id) {
     return `${encodeURIComponent(String(id))}.json`;
 }
 
-function requestContentType(req) {
-    if (typeof req.get === 'function') return req.get('content-type') || '';
-    return req.headers?.['content-type'] || '';
-}
-
-function isStructuredCloudEventRequest(req) {
-    const contentType = requestContentType(req).split(';', 1)[0].trim().toLowerCase();
-    const markedCloudEvent = req.body
-        && typeof req.body === 'object'
-        && typeof req.body.specversion === 'string'
-        && Object.hasOwn(req.body, 'data');
-    return contentType === 'application/cloudevents+json' || markedCloudEvent;
-}
-
-function extractRequestPayload(req) {
-    const body = req.body;
-    const structuredCloudEvent = isStructuredCloudEventRequest(req);
-
-    if (structuredCloudEvent) {
-        if (!body || typeof body !== 'object' || !Object.hasOwn(body, 'data')) {
-            throw new PayloadValidationError([{
-                path: '$.data',
-                expected: 'CloudEvent data payload',
-                actual: 'missing',
-            }]);
-        }
-        return { value: body.data, isCloudEvent: true };
-    }
-
-    return { value: body, isCloudEvent: false };
-}
-
 function sendValidationError(res, error) {
     return res.status(error.statusCode).json({
         error: error.code,
@@ -110,19 +78,11 @@ function createJsonResource({
     }
 
     async function write(req, res, next) {
-        const isCloudEvent = isStructuredCloudEventRequest(req);
         try {
-            const { value } = extractRequestPayload(req);
-            const result = await put(value);
-            if (isCloudEvent) {
-                return res.status(200).send();
-            }
+            const result = await put(req.body);
             return res.status(201).json(result.value);
         } catch (error) {
             if (error instanceof PayloadValidationError) {
-                if (isCloudEvent) {
-                    return res.status(200).json({ status: 'DROP' });
-                }
                 return sendValidationError(res, error);
             }
             if (typeof next === 'function') return next(error);
@@ -161,7 +121,5 @@ function createJsonResource({
 
 module.exports = {
     createJsonResource,
-    extractRequestPayload,
-    isStructuredCloudEventRequest,
     keyFromId,
 };

@@ -10,8 +10,6 @@ const {
 } = require('./errors');
 const {
     createJsonResource,
-    extractRequestPayload,
-    isStructuredCloudEventRequest,
     keyFromId,
 } = require('./json-resource');
 const { createMemoryStorage } = require('./storage/memory');
@@ -29,8 +27,6 @@ module.exports = {
     createMemoryStorage,
     createS3Storage,
     createS3StorageFromEnv,
-    extractRequestPayload,
-    isStructuredCloudEventRequest,
     keyFromId,
     validateAgainstDefinition,
 };

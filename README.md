@@ -1,22 +1,18 @@
 # API Blob Storage Middleware
 
 `@jefking/api-blob-storage` turns a JSON HTTP resource into objects in an
-S3-compatible store. Its handlers are standard Express middleware and accept
-both direct JSON requests and structured CloudEvents delivered by Dapr.
+S3-compatible store. Its handlers are standard Express middleware.
 
 ```text
-HTTP JSON ─┐
-           ├─> JSON resource middleware ─> storage port ─> S3 / MinIO
-Dapr event ┘
+HTTP JSON ─> JSON resource middleware ─> storage port ─> S3 / MinIO
 ```
 
 The storage port is deliberately small (`put` and `get`), so another blob
-provider can be added without changing the API or Dapr middleware.
+provider can be added without changing the HTTP middleware.
 
 ## Data contract
 
-[`dapr-app/sample.json`](dapr-app/sample.json) is the canonical definition of
-data entering and leaving this subsystem:
+Pass an example object as the resource definition:
 
 ```json
 {
@@ -26,7 +22,7 @@ data entering and leaving this subsystem:
 }
 ```
 
-The middleware derives its runtime contract from this example. Every field is
+The middleware derives its runtime contract from the definition. Every field is
 required, additional fields are rejected, values must have the demonstrated
 JSON types, and an integer example requires a JavaScript-safe integer. Writes
 and reads return the same object without enrichment or mutation.
@@ -53,7 +49,14 @@ const storage = createS3Storage({
   bucket: 'application-data',
   prefix: 'things',
 });
-const things = createJsonResource({ storage });
+const things = createJsonResource({
+  storage,
+  definition: {
+    id: 42,
+    description: 'i am a thing.',
+    unique: false,
+  },
+});
 
 const app = express();
 app.use(express.json({ type: ['application/json', 'application/*+json'] }));
@@ -64,16 +67,9 @@ app.get('/thing/:id', things.read);
 `POST /thing` writes `things/<encoded-id>.json` and returns the stored JSON with
 status 201. `GET /thing/:id` reads it back or returns 404.
 
-A structured CloudEvent is unwrapped only when its content type is
-`application/cloudevents+json` or it has CloudEvent `specversion` and `data`
-fields. A successful event delivery returns an empty 200 response, which keeps
-the handlers compatible with Dapr pub/sub delivery. A permanently invalid Dapr
-payload returns `200 {"status":"DROP"}` so it is not retried forever; transient
-storage failures remain non-2xx responses and can be retried.
-
 ## Configure S3 from the environment
 
-The Dapr writer example uses `createS3StorageFromEnv()` and accepts:
+`createS3StorageFromEnv()` accepts:
 
 | Variable | Required | Default |
 | --- | --- | --- |
@@ -124,7 +120,7 @@ npm run test:integration
 npm run test:all
 ```
 
-The integration suite writes the canonical sample through the HTTP middleware
+The integration suite writes a fixture through the HTTP middleware
 and reads it directly with the AWS S3 client. It also seeds an object directly
 through S3 and reads it through HTTP. This prevents a shared implementation bug
 from making a simple round-trip test pass.
@@ -163,15 +159,3 @@ line:
 ```sh
 npm run load:minio -- --rounds 4 --operations 5000 --concurrency 32 --payload-bytes 4096
 ```
-
-## Existing Dapr example
-
-The original two-stage example remains under [`dapr-app`](dapr-app/README.md):
-
-1. `validation` validates the direct API payload and publishes `pubsub/thing`.
-2. Dapr wraps the message as a CloudEvent and posts it to the writer's `/thing`.
-3. The package middleware unwraps, validates, and stores `things/<id>.json`.
-4. The writer also exposes `GET /thing/:id` for reads.
-
-The former `inflated` field was removed at the storage boundary so input and
-output both conform exactly to `sample.json`.

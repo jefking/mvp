@@ -19,12 +19,10 @@
   "main": "src/index.js",
   "exports": {
     ".": "./src/index.js",
-    "./sample": "./dapr-app/sample.json",
     "./package.json": "./package.json"
   },
   "files": [
-    "src",
-    "dapr-app/sample.json"
+    "src"
   ],
   "engines": {
     "node": ">=22.22"
@@ -32,7 +30,7 @@
   "scripts": {
     "load:minio": "node benchmark/minio.js",
     "test": "npm run test:unit",
-    "test:unit": "node --test test/unit/*.test.js dapr-app/validation/app.test.js dapr-app/writer/app.test.js",
+    "test:unit": "node --test test/unit/*.test.js",
     "test:integration": "node --test --test-concurrency=1 test/integration/*.test.js",
     "test:all": "npm run test:unit && npm run test:integration",
     "pack:check": "npm pack --dry-run"
@@ -42,7 +40,6 @@
     "middleware",
     "s3",
     "minio",
-    "dapr",
     "object-storage"
   ],
   "dependencies": {
@@ -50,8 +47,6 @@
   },
   "devDependencies": {
     "@testcontainers/minio": "^12.1.0",
-    "axios": "^1.18.0",
-    "express": "^5.2.1",
-    "openapi-backend": "^5.17.0"
+    "express": "^5.2.1"
   }
 }

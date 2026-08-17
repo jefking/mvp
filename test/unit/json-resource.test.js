@@ -6,14 +6,13 @@ const {
     StoredDataError,
     createJsonResource,
     createMemoryStorage,
-    extractRequestPayload,
     keyFromId,
 } = require('../..');
-const sample = require('../../dapr-app/sample.json');
+const sample = require('../fixtures/thing.json');
 
 test('put/get round-trips the canonical payload without mutating it', async () => {
     const storage = createMemoryStorage();
-    const resource = createJsonResource({ storage });
+    const resource = createJsonResource({ storage, definition: sample });
     const input = structuredClone(sample);
     const before = structuredClone(input);
 
@@ -28,30 +27,13 @@ test('put/get round-trips the canonical payload without mutating it', async () =
 
 test('writing the same ID is an idempotent replacement', async () => {
     const storage = createMemoryStorage();
-    const resource = createJsonResource({ storage });
+    const resource = createJsonResource({ storage, definition: sample });
     await resource.put(sample);
     const replacement = { ...sample, description: 'replacement' };
     await resource.put(replacement);
 
     assert.deepEqual(storage.keys(), ['42.json']);
     assert.deepEqual((await resource.get(sample.id)).value, replacement);
-});
-
-test('only structured CloudEvents are unwrapped', () => {
-    const cloudEvent = extractRequestPayload({
-        headers: { 'content-type': 'application/cloudevents+json; charset=utf-8' },
-        body: { specversion: '1.0', data: sample },
-    });
-    assert.deepEqual(cloudEvent, { value: sample, isCloudEvent: true });
-
-    const ordinaryDataProperty = { data: sample };
-    assert.deepEqual(extractRequestPayload({
-        headers: { 'content-type': 'application/json' },
-        body: ordinaryDataProperty,
-    }), {
-        value: ordinaryDataProperty,
-        isCloudEvent: false,
-    });
 });
 
 test('object keys encode IDs and cannot create prefix-like paths', () => {
@@ -61,7 +43,7 @@ test('object keys encode IDs and cannot create prefix-like paths', () => {
 test('invalid JSON in storage fails as invalid stored data', async () => {
     const storage = createMemoryStorage();
     await storage.put('42.json', Buffer.from('{invalid'), { contentType: 'application/json' });
-    const resource = createJsonResource({ storage });
+    const resource = createJsonResource({ storage, definition: sample });
 
     await assert.rejects(
         resource.get(42),
